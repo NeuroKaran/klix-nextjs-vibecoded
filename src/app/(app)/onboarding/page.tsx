@@ -1,4 +1,4 @@
-import { OnboardingFlow } from '@/coomponents/onboarding/OnboardingFlow'
+import { OnboardingFlow } from '@/components/onboarding/OnboardingFlow'
 import { redirect } from 'next/navigation'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
 

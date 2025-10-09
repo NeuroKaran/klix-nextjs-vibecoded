@@ -1,4 +1,5 @@
 import { createServerSupabaseClient } from '@/lib/supabase/server'
+import { Message } from '@/types'
 import { NextRequest, NextResponse } from 'next/server'
 
 export async function GET(
@@ -26,7 +27,7 @@ export async function GET(
 
     // Sort messages by created_at
     if (session.messages) {
-      session.messages.sort((a, b) => 
+      session.messages.sort((a: Message, b: Message) => 
         new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
       )
     }

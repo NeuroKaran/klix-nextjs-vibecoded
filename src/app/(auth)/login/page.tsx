@@ -1,4 +1,4 @@
-import { AuthForm } from '@/coomponents/auth/AuthForm'
+import { AuthForm } from '@/components/auth/AuthForm'
 import { redirect } from 'next/navigation'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
 

@@ -18,10 +18,9 @@ This is a production-ready AI chat application built with Next.js, Supabase, and
 
 The application follows a standard Next.js project structure.
 
-*   `src/app`: Contains the main application logic, including pages and API routes.
-*   `src/coomponents`: Contains reusable React components.
+*   `src/app`: Contains the main application logic, including pages, API routes, and global styles (`globals.css`).
+*   `src/components`: Contains reusable React components.
 *   `src/lib`: Contains utility functions and Supabase client configurations.
-*   `src/styles`: Contains global CSS styles.
 *   `src/types`: Contains TypeScript type definitions.
 *   `supabase`: Contains database migration and seed files.
 
@@ -57,7 +56,7 @@ The application follows a standard Next.js project structure.
 ## Development Conventions
 
 *   **Coding Style:** The project uses TypeScript and follows standard React and Next.js conventions.
-*   **Styling:** Tailwind CSS is used for styling, with a custom pixel art theme.
+*   **Styling:** Tailwind CSS is used for styling. Global styles are located in `src/app/globals.css`.
 *   **Authentication:** User authentication is handled by Supabase Auth.
 *   **Database:** Supabase is used as the database, with Row Level Security enabled for data protection.
 *   **API:** The backend is built with Next.js API Routes.
@@ -70,7 +69,8 @@ This section provides a more detailed look at the project's structure and the pu
 ### Root Directory
 
 -   `middleware.ts`: Intercepts all incoming requests to manage and refresh user sessions using Supabase Auth. This is crucial for maintaining a persistent login state.
--   `next.config.js`: The primary configuration for Next.js. It enables `serverActions` which are used for some form submissions.
+-   `next.config.js`: The primary configuration for Next.js.
+-   `postcss.config.js`: Explicit configuration for PostCSS, ensuring Tailwind CSS and Autoprefixer are processed correctly.
 -   `tailwind.config.ts`: Configures the Tailwind CSS framework. It defines the custom pixel-art theme, including fonts (`"Press Start 2P"`), colors (`klix-orange`), and animations.
 -   `tsconfig.json`: TypeScript configuration, notable for setting up the `@/*` path alias for cleaner imports from the `src` directory.
 
@@ -78,8 +78,9 @@ This section provides a more detailed look at the project's structure and the pu
 
 This directory uses the Next.js App Router paradigm.
 
+-   `globals.css`: Contains global styles and Tailwind CSS directives.
 -   `page.tsx`: The main entry point. It checks for an active user session and redirects to either `/login` or `/chat`, acting as a routing guard.
--   `layout.tsx`: The root layout for the entire application. It sets up the HTML structure, applies the global font, and renders the `<PixelBackground />` component.
+-   `layout.tsx`: The root layout for the entire application. It sets up the HTML structure, applies the global font using `next/font/google`, and wraps the children in an `<ErrorBoundary />`.
 -   **`(auth)/login/page.tsx`**: The user login page. It renders the `AuthForm` component and redirects to `/chat` if a user is already logged in. The `(auth)` folder is a route group, meaning it doesn't appear in the URL.
 -   **`(app)/chat/page.tsx`**: The main chat interface page. It's a server component that protects the route, ensuring only logged-in and onboarded users can access it. It renders the client-side `ChatInterface` component.
 -   **`(app)/onboarding/page.tsx`**: A page that guides new users through a series of questions to establish the AI's initial "global memory." It renders the `OnboardingFlow` component.
@@ -89,8 +90,9 @@ This directory uses the Next.js App Router paradigm.
     -   `api/memory/`: Endpoints for updating the user's global and session-specific memories.
     -   `api/sessions/`: Endpoints for creating, retrieving, and deleting chat sessions.
 
-### `src/coomponents` - Reusable Components
+### `src/components` - Reusable Components
 
+-   `ErrorBoundary.tsx`: A client component that catches JavaScript errors in its child component tree and displays a fallback UI.
 -   `auth/AuthForm.tsx`: A client component that handles both user registration and login with email and password. It communicates with the Supabase client and the internal `/api/auth` routes.
 -   `chat/ChatInterface.tsx`: A large client component that orchestrates the entire chat UI. It manages sessions, messages, real-time updates via Supabase subscriptions, and user interactions like sending messages and logging out.
 -   `onboarding/OnboardingFlow.tsx`: A multi-step form that collects user preferences to build their initial global memory profile.

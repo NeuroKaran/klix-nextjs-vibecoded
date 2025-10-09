@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { Press_Start_2P } from 'next/font/google'
-import { PixelBackground } from '@/coomponents/background/PixelBackground'
+import { PixelBackground } from '@/components/background/PixelBackground'
+import { ErrorBoundary } from '@/components/ErrorBoundary'
 import './globals.css'
 
 const pressStart = Press_Start_2P({
@@ -21,9 +22,11 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={`${pressStart.variable} antialiased bg-gradient-to-br from-white via-gray-50 to-gray-100`}>
+      <body className={`${pressStart.variable} font-pixel antialiased bg-gradient-to-br from-white via-gray-50 to-gray-100`}>
         <PixelBackground />
-        {children}
+        <ErrorBoundary>
+          {children}
+        </ErrorBoundary>
       </body>
     </html>
   )

@@ -1,4 +1,4 @@
-import { ChatInterface } from '@/coomponents/chat/ChatInterface'
+import { ChatInterface } from '@/components/chat/ChatInterface'
 import { redirect } from 'next/navigation'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
 

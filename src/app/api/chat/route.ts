@@ -1,5 +1,6 @@
 import { createServerSupabaseClient } from '@/lib/supabase/server'
 import { MemoryAnalyzer } from '@/lib/utils/memoryAnalyzer'
+import { Message } from '@/types'
 import { NextRequest, NextResponse } from 'next/server'
 
 export async function POST(request: NextRequest) {
@@ -52,7 +53,7 @@ export async function POST(request: NextRequest) {
 
     // Build context
     const conversationHistory = session.messages || []
-    const context = conversationHistory.slice(-10).map(m => ({
+    const context = conversationHistory.slice(-10).map((m: Message) => ({
       role: m.role === 'user' ? 'user' as const : 'model' as const,
       parts: [{ text: m.content }]
     }))
