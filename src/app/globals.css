@@ -6,3 +6,14 @@
   image-rendering: pixelated;
   -webkit-font-smoothing: none;
 }
+
+/* LoadingScreen rotation animation used by ChatInterface */
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+.animate-spin-slow {
+  animation: spin-slow 1.1s linear infinite;
+  transform-origin: center;
+  display: inline-block;
+}

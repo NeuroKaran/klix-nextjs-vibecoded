@@ -88,28 +88,31 @@ export async function POST(request: NextRequest) {
     )
 
     // Call Gemini API
-    const geminiRes = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [
-            {
-              role: 'user',
-              parts: [{ text: memoryPrompt + '\n\nUser: ' + message }]
-            },
-            ...context
-          ],
-          generationConfig: {
-            temperature: 0.9,
-            maxOutputTokens: 2048,
-            topP: 0.95,
-            topK: 40
-          }
-        })
+const geminiRes = await fetch(
+  `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`,
+  {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      contents: [
+        ...context,
+        {
+          role: 'user',
+          parts: [{ text: message }]
+        }
+      ],
+      systemInstruction: {
+        parts: [{ text: memoryPrompt }]
+      },
+      generationConfig: {
+        temperature: 0.9,
+        maxOutputTokens: 2048,
+        topP: 0.95,
+        topK: 40
       }
-    )
+    })
+  }
+)
 
     if (!geminiRes.ok) {
       const errorData = await geminiRes.json()

@@ -20,6 +20,7 @@ const config: Config = {
         'sparkle': 'sparkle 3s ease-in-out infinite',
         'slide-in': 'slideIn 0.4s ease-out',
         'delete-progress': 'deleteProgress 2s linear',
+        'spin': 'spin 1s linear infinite',
       },
       keyframes: {
         sparkle: {
@@ -33,6 +34,10 @@ const config: Config = {
         deleteProgress: {
           'from': { width: '0%' },
           'to': { width: '100%' },
+        },
+        spin: {
+          'from': { transform: 'rotate(0deg)' },
+          'to': { transform: 'rotate(360deg)' },
         },
       },
     },

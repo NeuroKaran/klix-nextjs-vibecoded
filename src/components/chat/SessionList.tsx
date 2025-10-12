@@ -23,11 +23,9 @@ export function SessionList({
   const handleDeleteStart = (sessionId: string) => {
     setDeleteHold(sessionId)
     deleteTimerRef.current = setTimeout(() => {
-      if (window.confirm('Delete this session permanently?')) {
-        onDeleteSession(sessionId)
-      }
+      onDeleteSession(sessionId)
       setDeleteHold(null)
-    }, 2000)
+    }, 2000);
   }
 
   const handleDeleteEnd = () => {

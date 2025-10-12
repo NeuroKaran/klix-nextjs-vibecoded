@@ -8,6 +8,8 @@ import { MessageList } from './MessageList'
 import { MessageInput } from './MessageInput'
 import { Button } from '@/components/ui/Button'
 import { useRouter } from 'next/navigation'
+import { Prompt } from '../ui/Prompt'
+import { Modal } from '../ui/Modal'
 
 export function ChatInterface() {
   const [sessions, setSessions] = useState<Session[]>([])
@@ -16,6 +18,12 @@ export function ChatInterface() {
   const [loading, setLoading] = useState(false)
   const [geminiKey, setGeminiKey] = useState('')
   const [userName, setUserName] = useState('')
+  const [isMemoryPromptOpen, setMemoryPromptOpen] = useState(false)
+  const [isApiKeyPromptOpen, setApiKeyPromptOpen] = useState(false)
+  const [pendingMessage, setPendingMessage] = useState('')
+  const [isDeleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
+  const [sessionToDelete, setSessionToDelete] = useState<string | null>(null)
+  const [isInitializing, setIsInitializing] = useState<boolean>(true)
   const router = useRouter()
   const supabase = createClient()
 
@@ -44,6 +52,7 @@ export function ChatInterface() {
       setSessions(sessionData)
       loadSession(sessionData[0].id)
     }
+    setIsInitializing(false)
   }, [supabase, router])
 
   const subscribeToMessages = useCallback(() => {
@@ -98,13 +107,20 @@ export function ChatInterface() {
     setMessages([])
   }
 
-  const deleteSession = async (sessionId: string) => {
-    await fetch(`/api/sessions/${sessionId}`, { method: 'DELETE' })
+  const requestDeleteSession = (sessionId: string) => {
+    setSessionToDelete(sessionId)
+    setDeleteConfirmOpen(true)
+  }
+
+  const confirmDeleteSession = async () => {
+    if (!sessionToDelete) return
+
+    await fetch(`/api/sessions/${sessionToDelete}`, { method: 'DELETE' })
     
-    const newSessions = sessions.filter(s => s.id !== sessionId)
+    const newSessions = sessions.filter(s => s.id !== sessionToDelete)
     setSessions(newSessions)
     
-    if (currentSession?.id === sessionId) {
+    if (currentSession?.id === sessionToDelete) {
       if (newSessions.length > 0) {
         loadSession(newSessions[0].id)
       } else {
@@ -112,15 +128,12 @@ export function ChatInterface() {
         setMessages([])
       }
     }
+    setDeleteConfirmOpen(false)
+    setSessionToDelete(null)
   }
 
-  const editSessionMemory = () => {
-    const newMemory = prompt(
-      'SESSION MEMORY\n\nCustomize how Klix behaves in this specific chat.\n\nExample: "Act as a Python expert. Be technical and concise."\n\nEdit memory:',
-      currentSession?.session_memory || ''
-    )
-
-    if (newMemory !== null && newMemory.trim() && currentSession) {
+  const handleEditMemory = (newMemory: string) => {
+    if (newMemory.trim() && currentSession) {
       fetch(`/api/sessions/${currentSession.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -131,15 +144,24 @@ export function ChatInterface() {
     }
   }
 
-  const sendMessage = async (content: string) => {
+  const handleApiKey = (key: string) => {
+    if (!key) return
+    setGeminiKey(key)
+    sessionStorage.setItem('gemini_key', key)
+    if (pendingMessage) {
+      sendMessage(pendingMessage, key)
+      setPendingMessage('')
+    }
+  }
+
+  const sendMessage = async (content: string, apiKey?: string) => {
     if (!currentSession) return
 
-    let key = geminiKey
+    const key = apiKey || geminiKey
     if (!key) {
-      key = prompt('Enter your Gemini API key (stored in session only):') || ''
-      if (!key) return
-      setGeminiKey(key)
-      sessionStorage.setItem('gemini_key', key)
+      setPendingMessage(content)
+      setApiKeyPromptOpen(true)
+      return
     }
 
     setLoading(true)
@@ -166,6 +188,17 @@ export function ChatInterface() {
     router.push('/login')
   }
 
+  if (isInitializing) {
+    return (
+      <div className="flex h-screen items-center justify-center bg-gray-100">
+        <div className="flex items-center gap-4 font-pixel text-lg text-klix-orange">
+          <div className="animate-spin">◈</div>
+          Loading KLIX
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="flex h-screen">
       {/* Sidebar */}
@@ -183,7 +216,7 @@ export function ChatInterface() {
           sessions={sessions}
           currentSessionId={currentSession?.id || null}
           onSelectSession={loadSession}
-          onDeleteSession={deleteSession}
+          onDeleteSession={requestDeleteSession}
         />
 
         {/* Sidebar Footer */}
@@ -204,7 +237,7 @@ export function ChatInterface() {
           <h1 className="font-pixel text-xl">◈ KLIX AI ◈</h1>
           {currentSession && (
             <button
-              onClick={editSessionMemory}
+              onClick={() => setMemoryPromptOpen(true)}
               className="font-pixel text-[8px] px-3.5 py-2 bg-white text-klix-orange border-2 border-gray-900 rounded-md hover:translate-y-[-2px] transition-all shadow-[2px_2px_0px_rgba(0,0,0,0.2)] hover:shadow-[3px_3px_0px_rgba(0,0,0,0.3)] flex items-center gap-2"
             >
               <span className="text-xs">
@@ -235,6 +268,37 @@ export function ChatInterface() {
           </div>
         )}
       </div>
+
+      <Prompt
+        isOpen={isMemoryPromptOpen}
+        onClose={() => setMemoryPromptOpen(false)}
+        onConfirm={handleEditMemory}
+        title="SESSION MEMORY"
+        label="Customize how Klix behaves in this specific chat. Example: 'Act as a Python expert. Be technical and concise.'"
+        defaultValue={currentSession?.session_memory || ''}
+        type="textarea"
+      />
+
+      <Prompt
+        isOpen={isApiKeyPromptOpen}
+        onClose={() => setApiKeyPromptOpen(false)}
+        onConfirm={handleApiKey}
+        title="Gemini API Key"
+        label="Enter your Gemini API key (stored in session only):"
+        
+      />
+
+      <Modal
+        isOpen={isDeleteConfirmOpen}
+        onClose={() => setDeleteConfirmOpen(false)}
+        onConfirm={confirmDeleteSession}
+        title="DELETE SESSION"
+        confirmText="DELETE"
+      >
+        <p className="font-pixel text-sm text-gray-700 mb-2">
+          Are you sure you want to delete this session? This action cannot be undone.
+        </p>
+      </Modal>
     </div>
   )
 }
